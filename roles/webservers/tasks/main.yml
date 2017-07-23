@@ -1,0 +1,43 @@
+---
+- name: ensure packages are installed
+  yum: 
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - firewalld
+    - openssl
+    - nginx
+
+- firewalld:
+    service: "{{ item }}"
+    permanent: true
+    state: enabled
+  with_items:
+    - http
+    - https
+    - ssh
+  notify:
+    - restart firewalld
+
+- name: create self-signed cert and key
+  command: openssl req -new -nodes -x509 -subj "/C=US/ST=STATE/L=CITY/O=IT/CN=${ansible_fqdn}" -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/certs/server.crt
+
+- name: ensure presence, content of `/etc/nginx/nginx.conf`
+  copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: nginx
+    group: nginx
+    mode: 0644
+  notify:
+    - restart nginx
+
+- name: ensure presence, permissions of `/usr/share/nginx/html/index.html`
+  copy:
+    src: index.html
+    dest: /usr/share/nginx/html/index.html
+    owner: nginx
+    group: nginx
+    mode: 0644
+  notify:
+    - restart nginx

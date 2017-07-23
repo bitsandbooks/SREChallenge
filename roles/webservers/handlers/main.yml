@@ -1,0 +1,12 @@
+---
+- name: restart firewalld
+  systemd: 
+    name: firewalld.service
+    state: restarted
+    enabled: yes
+
+- name: restart nginx
+  systemd: 
+    name: nginx.service
+    state: restarted
+    enabled: yes
